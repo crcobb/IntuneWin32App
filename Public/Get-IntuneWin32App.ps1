@@ -57,8 +57,6 @@ function Get-IntuneWin32App {
         switch ($PSCmdlet.ParameterSetName) {
             "DisplayName" {
                 $Win32AppList = New-Object -TypeName "System.Collections.Generic.List[Object]"
-                $DisplayFilter = if( $Exact ) {$DisplayName } else { "*$($DisplayName)*" }
-                $EncodedDisplayFilter = [System.Uri]::EscapeDataString($DisplayFilter)
                 $Win32MobileApps = Invoke-MSGraphOperation -Get -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps?`$filter=isof('microsoft.graph.win32LobApp')"
                 if ($Win32MobileApps -ne $null) {
                     $DisplayFilter = if( $Exact ) {$DisplayName } else { "*$($DisplayName)*" }
