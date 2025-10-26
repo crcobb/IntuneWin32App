@@ -32,6 +32,9 @@ function Get-IntuneWin32App {
         [ValidateNotNullOrEmpty()]
         [string]$DisplayName,
 
+        [parameter(Mandatory = $false, ParameterSetName = "DisplayName", HelpMessage = "Specify to perform an exact search when using DisplayName.  The display name match uses -like so you can specify wildcards in the search.")]
+        [switch]$Exact,
+
         [parameter(Mandatory = $true, ParameterSetName = "ID", HelpMessage = "Specify the ID for a Win32 application.")]
         [ValidateNotNullOrEmpty()]
         [string]$ID 
@@ -54,10 +57,13 @@ function Get-IntuneWin32App {
         switch ($PSCmdlet.ParameterSetName) {
             "DisplayName" {
                 $Win32AppList = New-Object -TypeName "System.Collections.Generic.List[Object]"
+                $DisplayFilter = if( $Exact ) {$DisplayName } else { "*$($DisplayName)*" }
+                $EncodedDisplayFilter = [System.Uri]::EscapeDataString($DisplayFilter)
                 $Win32MobileApps = Invoke-MSGraphOperation -Get -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps?`$filter=isof('microsoft.graph.win32LobApp')"
                 if ($Win32MobileApps -ne $null) {
-                    Write-Verbose -Message "Filtering for Win32 apps matching displayName: $($DisplayName)"
-                    $Win32MobileApps = $Win32MobileApps | Where-Object { $_.displayName -like "*$($DisplayName)*" }
+                    $DisplayFilter = if( $Exact ) {$DisplayName } else { "*$($DisplayName)*" }
+                    Write-Verbose -Message "Filtering for Win32 apps matching displayName: $($DisplayName) with filter: $($DisplayFilter)"
+                    $Win32MobileApps = $Win32MobileApps | Where-Object { $_.displayName -like $DisplayFilter }
                     if ($Win32MobileApps -ne $null) {
                         foreach ($Win32MobileApp in $Win32MobileApps) {
                             $Win32App = Invoke-MSGraphOperation -Get -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps/$($Win32MobileApp.id)"
