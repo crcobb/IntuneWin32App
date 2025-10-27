@@ -24,7 +24,11 @@ function Get-IntuneWin32AppSupersedence {
     param(
         [parameter(Mandatory = $true, HelpMessage = "Specify the ID for an existing Win32 application to retrieve supersedence configuration.")]
         [ValidateNotNullOrEmpty()]
-        [string]$ID
+        [string]$ID,
+
+        [parameter(Mandatory = $false, HelpMessage = "Return only child supersedence")]
+        [ValidateNotNullOrEmpty()]
+        [switch] $ChildOnly
     )
     Begin {
         # Ensure required authentication header variable exists
@@ -51,12 +55,15 @@ function Get-IntuneWin32AppSupersedence {
                 # Attempt to call Graph and retrieve supersedence configuration for Win32 app
                 $Win32AppRelationsResponse = Invoke-IntuneGraphRequest -APIVersion "Beta" -Resource "mobileApps/$($Win32AppID)/relationships" -Method "GET" -ErrorAction Stop
 
+                $RelationshipResult = @()
                 # Handle return value
-                if ($Win32AppRelationsResponse.value -ne $null) {
-                    if ($Win32AppRelationsResponse.value.'@odata.type' -like "#microsoft.graph.mobileAppSupersedence") {
-                        return $Win32AppRelationsResponse.value
-                    }
+                if ($null -ne $Win32AppRelationsResponse.value) {
+                    $RelationshipResult = @($Win32AppRelationsResponse.value | Where-Object { $_."@odata.type" -eq "#microsoft.graph.mobileAppSupersedence"} )
+                    if( $ChildOnly) {
+                        $RelationshipResult = @($RelationshipResult | Where-Object { $_.targetType -eq "child" })
+                    } 
                 }
+                return $RelationshipResult
             }
             catch [System.Exception] {
                 Write-Warning -Message "An error occurred while retrieving supersedence configuration for Win32 app: $($Win32AppID). Error message: $($_.Exception.Message)"
