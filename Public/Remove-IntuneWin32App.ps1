@@ -31,7 +31,11 @@ function Remove-IntuneWin32App {
         
         [parameter(Mandatory = $true, ParameterSetName = "ID", HelpMessage = "Specify the ID for a Win32 application.")]
         [ValidateNotNullOrEmpty()]
-        [string]$ID 
+        [string]$ID, 
+
+        [parameter(Mandatory = $false, ParameterSetName = "DisplayName", HelpMessage = "Remove any dependencies or supersedence relationships before deleting the Win32 app.")]
+        [parameter(Mandatory = $false, ParameterSetName = "ID", HelpMessage = "Remove any dependencies or supersedence relationships before deleting the Win32 app.")]
+        [switch]$Force
     )
     Begin {
         # Ensure required authentication header variable exists
