@@ -9,6 +9,9 @@ function Get-IntuneWin32AppSupersedence {
     .PARAMETER ID
         Specify the ID for an existing Win32 application to retrieve supersedence configuration.
 
+    .PARAMETER ChildOnly
+        Return only child supersedence.    
+        
     .NOTES
         Author:      Nickolaj Andersen
         Contact:     @NickolajA
