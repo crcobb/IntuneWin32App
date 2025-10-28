@@ -51,11 +51,12 @@ function Get-IntuneWin32AppDependency {
                 $Win32AppRelationsResponse = Invoke-IntuneGraphRequest -APIVersion "Beta" -Resource "mobileApps/$($Win32AppID)/relationships" -Method "GET" -ErrorAction Stop
 
                 # Handle return value
-                if ($Win32AppRelationsResponse.value -ne $null) {
-                    if ($Win32AppRelationsResponse.value.'@odata.type' -like "#microsoft.graph.mobileAppDependency") {
-                        return $Win32AppRelationsResponse.value
-                    }
+                $RelationshipResult = @()
+
+                if ($null -ne $Win32AppRelationsResponse.value)  {
+                    $RelationshipResult= @($Win32AppRelationsResponse.value | Where-Object{$_.'@odata.type' -like "#microsoft.graph.mobileAppDependency" } )
                 }
+                return $RelationshipResult
             }
             catch [System.Exception] {
                 Write-Warning -Message "An error occurred while retrieving supersedence configuration for Win32 app: $($Win32AppID). Error message: $($_.Exception.Message)"
