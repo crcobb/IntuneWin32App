@@ -12,6 +12,9 @@ function Remove-IntuneWin32App {
     .PARAMETER ID
         Specify the ID for a Win32 application.
 
+    .PARAMETER Force
+        Remove the Win32 app including any existing relationships.
+
     .NOTES
         Author:      Nickolaj Andersen & Christof Van Geendertaelen
         Contact:     @NickolajA & @cvangeendert
@@ -31,7 +34,11 @@ function Remove-IntuneWin32App {
         
         [parameter(Mandatory = $true, ParameterSetName = "ID", HelpMessage = "Specify the ID for a Win32 application.")]
         [ValidateNotNullOrEmpty()]
-        [string]$ID 
+        [string]$ID ,
+
+        [parameter(Mandatory = $false, ParameterSetName = "DisplayName")]
+        [parameter(Mandatory = $false, ParameterSetName = "ID")]
+        [switch]$Force
     )
     Begin {
         # Ensure required authentication header variable exists
@@ -78,7 +85,28 @@ function Remove-IntuneWin32App {
 
         if (-not([string]::IsNullOrEmpty($Win32AppID))) {
             try {
-                # Attempt to call Graph and delete Win32 app
+                if ( $Force) {
+                    Remove-IntuneWin32AppDependency -ID $Win32AppID
+                    Remove-IntuneWin32AppSupersedence -ID $Win32AppID
+                    $Supersedences = Get-IntuneWin32AppSupersedence -ID $Win32AppID
+                    foreach ($Supersedence in $Supersedences) {
+                        if ( $Supersedence.targetType -eq "parent") {
+                            $ParentSupersedences = Get-IntuneWin32AppSupersedence -ID $Supersedence.targetId
+                            $Supersedences_Table = $()
+                            foreach ( $ParentSupersedence in $ParentSupersedences) {
+                                if ( ($ParentSupersedence.TargetType -eq "child") -and ($ParentSupersedence.targetId -ne $Win32AppID)) {
+                                    $Supersedences_Table += $ParentSupersedence 
+                                }
+                            }
+                            if( $Supersedences_Table.Count -gt 0 ) {
+                                Add-IntuneWin32AppSupersedence -ID $Supersedence.targetId -Supersedence @($Supersedences_Table)
+                            } else {
+                                Remove-IntuneWin32AppSupersedence -ID $Supersedence.targetId
+                            }
+                        }
+                    }   
+
+                }
                 $Win32AppDeletionResponse = Invoke-IntuneGraphRequest -APIVersion "Beta" -Resource "mobileApps/$($Win32AppID)" -Method "DELETE" -ErrorAction Stop
             }
             catch [System.Exception] {
