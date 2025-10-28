@@ -11,7 +11,7 @@
 RootModule = 'IntuneWin32App.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.4.4'
+ModuleVersion = '2.0.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
