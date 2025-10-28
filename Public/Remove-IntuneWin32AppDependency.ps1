@@ -49,11 +49,11 @@ function Remove-IntuneWin32AppDependency {
             $Win32AppID = $Win32App.id
 
             # Check for existing supersedence relations for Win32 app, as these relationships should not be removed
-            $Supersedence = Get-IntuneWin32AppSupersedence -ID $Win32AppID
+            $Supersedence = Get-IntuneWin32AppSupersedence -ID $Win32AppID -ChildOnly
 
             # Create relationships table to handle empty supersedence relations
             $Win32AppRelationshipsTable = [ordered]@{
-                "relationships" = if ($Supersedence) { @($Supersedence) } else { , @() }
+                "relationships" = if ($Supersedence) { , @($Supersedence) } else { , @() }
             }
 
             try {
