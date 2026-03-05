@@ -56,12 +56,12 @@ function Get-IntuneWin32App {
         switch ($PSCmdlet.ParameterSetName) {
             "DisplayName" {
                 $Win32AppList = New-Object -TypeName "System.Collections.Generic.List[Object]"
-                $Win32MobileApps = Invoke-MSGraphOperation -Get -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps?`$filter=isof('microsoft.graph.win32LobApp')"
+                $Win32MobileApps = @(Invoke-MSGraphOperation -Get -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps?`$filter=isof('microsoft.graph.win32LobApp')")
                 if ($null -ne $Win32MobileApps -and $Win32MobileApps.Count -gt 0) {
                     $DisplayFilter = if( $Exact ) {$DisplayName } else { "*$($DisplayName)*" }
                     Write-Verbose -Message "Retrieved $($Win32MobileApps.Count) total Win32 apps from tenant"
                     Write-Verbose -Message "Filtering for Win32 apps matching displayName: $($DisplayName) with filter: $($DisplayFilter)"
-                    $Win32MobileApps = $Win32MobileApps | Where-Object { $_.displayName -like $DisplayFilter }
+                    $Win32MobileApps = @($Win32MobileApps | Where-Object { $_.displayName -like $DisplayFilter })
                     if ($null -ne $Win32MobileApps -and $Win32MobileApps.Count -gt 0) {
                         Write-Verbose -Message "Found $($Win32MobileApps.Count) app(s) matching the display name filter"
                         foreach ($Win32MobileApp in $Win32MobileApps) {
