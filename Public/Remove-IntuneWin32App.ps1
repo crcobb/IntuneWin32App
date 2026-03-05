@@ -102,7 +102,7 @@ function Remove-IntuneWin32App {
                     }   
 
                 }
-                $Win32AppDeletionResponse = Invoke-IntuneGraphRequest -Delete -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps/$($Win32AppID)" -ErrorAction Stop
+                $Win32AppDeletionResponse = Invoke-IntuneGraphOperation -Delete -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps/$($Win32AppID)" -ErrorAction Stop
             }
             catch [System.Exception] {
                 Write-Warning -Message "An error occurred while deleting Win32 app with ID: $($Win32AppID). Error message: $($_.Exception.Message)"
