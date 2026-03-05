@@ -35,13 +35,8 @@ function Get-IntuneWin32AppSupersedence {
     )
     Begin {
         # Ensure required authentication header variable exists
-        if ($Global:AuthenticationHeader -eq $null) {
+        if (-not (Test-AuthenticationState)) {
             Write-Warning -Message "Authentication token was not found, use Connect-MSIntuneGraph before using this function"; break
-        }
-        else {
-            if ((Test-AccessToken) -eq $false) {
-                Write-Warning -Message "Existing token found but has expired, use Connect-MSIntuneGraph to request a new authentication token"; break
-            }
         }
 
         # Set script variable for error action preference
@@ -50,21 +45,30 @@ function Get-IntuneWin32AppSupersedence {
     Process {
         # Retrieve Win32 app by ID from parameter input
         Write-Verbose -Message "Querying for Win32 app using ID: $($ID)"
-        $Win32App = Invoke-IntuneGraphRequest -APIVersion "Beta" -Resource "mobileApps/$($ID)" -Method "GET"
-        if ($Win32App -ne $null) {
+        $Win32App = Invoke-MSGraphOperation -Get -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps/$($ID)"
+        if ($null -ne $Win32App) {
             $Win32AppID = $Win32App.id
 
             try {
                 # Attempt to call Graph and retrieve supersedence configuration for Win32 app
-                $Win32AppRelationsResponse = Invoke-IntuneGraphRequest -APIVersion "Beta" -Resource "mobileApps/$($Win32AppID)/relationships" -Method "GET" -ErrorAction Stop
+                $Win32AppRelationsResponse = Invoke-MSGraphOperation -Get -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps/$($Win32AppID)/relationships" -ErrorAction Stop
 
                 $RelationshipResult = @()
                 # Handle return value
-                if ($null -ne $Win32AppRelationsResponse.value) {
-                    $RelationshipResult = @($Win32AppRelationsResponse.value | Where-Object { $_."@odata.type" -eq "#microsoft.graph.mobileAppSupersedence"} )
-                    if( $ChildOnly) {
-                        $RelationshipResult = @($RelationshipResult | Where-Object { $_.targetType -eq "child" })
-                    } 
+                if ($null -ne $Win32AppRelationsResponse -and $Win32AppRelationsResponse.Count -gt 0) {
+                    # Filter for supersedence relationships
+                    $SupersedenceRelationships = $Win32AppRelationsResponse | Where-Object { $_.'@odata.type' -eq "#microsoft.graph.mobileAppSupersedence" }
+                    if ($null -ne $SupersedenceRelationships -and $SupersedenceRelationships.Count -gt 0) {
+                        Write-Verbose -Message "Found $(@($SupersedenceRelationships).Count) supersedence relationship(s)"
+                        if( $ChildOnly) {
+                            $SupersedenceRelationships = @($SupersedenceRelationships | Where-Object { $_.targetType -eq "child" })
+                            Write-Verbose -Message "Found ChildOnly $(@($SupersedenceRelationships).Count) supersedence relationship(s)"
+                        } 
+                        return $SupersedenceRelationships
+                    }
+                    else {
+                        Write-Verbose -Message "No supersedence relationships found for Win32 app: $($Win32AppID)"
+                    }
                 }
                 return $RelationshipResult
             }
@@ -73,7 +77,10 @@ function Get-IntuneWin32AppSupersedence {
             }
         }
         else {
-            Write-Warning -Message "Query for Win32 app returned an empty result, no apps matching the specified search criteria with ID '$($ID)' was found"
+            Write-Verbose -Message "Query for Win32 app returned an empty result, no apps matching the specified search criteria with ID '$($ID)' was found"
         }
+        
+        # Return empty array for consistency
+        return @()
     }
 }

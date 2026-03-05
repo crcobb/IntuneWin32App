@@ -50,7 +50,7 @@ PowerShellVersion = '5.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @("MSAL.PS")
+# RequiredModules = @("MSAL.PS")
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -99,6 +99,8 @@ FunctionsToExport = @("Add-IntuneWin32App",
                       "New-IntuneWin32AppSupersedence",
                       "Remove-IntuneWin32App",
                       "Remove-IntuneWin32AppAssignment",
+                      "Remove-IntuneWin32AppAssignmentAllDevices",
+                      "Remove-IntuneWin32AppAssignmentAllUsers",
                       "Remove-IntuneWin32AppAssignmentGroup",
                       "Remove-IntuneWin32AppDependency",
                       "Remove-IntuneWin32AppSupersedence",
@@ -142,6 +144,14 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         # ReleaseNotes = ''
+        
+        # Files and folders to exclude when publishing to PowerShell Gallery
+        Exclude = @(
+            'Tests/*'
+            'Development/*'
+            'Samples/*'
+            '.gitignore'
+        )
 
     } # End of PSData hashtable
 
@@ -154,4 +164,3 @@ PrivateData = @{
 # DefaultCommandPrefix = ''
 
 }
-
