@@ -71,7 +71,7 @@ function Get-IntuneWin32AppAssignment {
                 $Win32MobileApps = Invoke-MSGraphOperation -Get -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps?`$filter=isof('microsoft.graph.win32LobApp')"
                 if ($null -ne $Win32MobileApps -and $Win32MobileApps.Count -gt 0) {
                     Write-Verbose -Message "Filtering for Win32 apps matching displayName: $($DisplayName)"
-                    $Win32MobileApps = $Win32MobileApps | Where-Object { $_.displayName -like "*$($DisplayName)*" }
+                    $Win32MobileApps = @($Win32MobileApps | Where-Object { $_.displayName -like "*$($DisplayName)*" })
                     if ($null -ne $Win32MobileApps -and $Win32MobileApps.Count -gt 0) {
                         foreach ($Win32MobileApp in $Win32MobileApps) {
                             $Win32App = Invoke-MSGraphOperation -Get -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps/$($Win32MobileApp.id)"

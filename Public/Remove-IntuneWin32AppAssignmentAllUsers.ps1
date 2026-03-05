@@ -77,7 +77,7 @@ function Remove-IntuneWin32AppAssignmentAllUsers {
                 $Win32AppAssignmentResponse = Invoke-MSGraphOperation -Get -APIVersion "Beta" -Resource "deviceAppManagement/mobileApps/$($Win32AppID)/assignments" -ErrorAction Stop
                 if ($null -ne $Win32AppAssignmentResponse -and $Win32AppAssignmentResponse.Count -gt 0) {
                     # Filter for 'All Users' assignments only
-                    $AllUsersAssignments = $Win32AppAssignmentResponse | Where-Object { $_.target.'@odata.type' -eq "#microsoft.graph.allLicensedUsersAssignmentTarget" }
+                    $AllUsersAssignments = @($Win32AppAssignmentResponse | Where-Object { $_.target.'@odata.type' -eq "#microsoft.graph.allLicensedUsersAssignmentTarget" })
                     
                     if ($AllUsersAssignments.Count -gt 0) {
                         Write-Verbose -Message "Found $($AllUsersAssignments.Count) 'All Users' assignment(s) for removal"
